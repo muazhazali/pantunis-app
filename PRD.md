@@ -47,8 +47,33 @@ The Pantunis Mobile App is a React Native application built with Expo that bring
 - **Base URL**: https://pantunis-api-vercel.vercel.app
 - **Key Endpoints**:
   - `/api/cariGunaKata?kata={keyword}` - Search by word usage
+  - Sample Output: {
+    "pantun_id": 671,
+    "pantun_bayang1": "Banyak-banyak kucing berlari,",
+    "pantun_bayang2": "Mana nak sama kucing belang?",
+    "pantun_maksud1": "Banyak-banyak boleh dicari,",
+    "pantun_maksud2": "Mana nak sama tuan seorang?",
+    "pantun_jenis": 4,
+    "sumber_id": 1,
+    "sumber_tajuk": "Pantun Melayu",
+    "sumber_pengkarya": "Richard J. Wilkinson dan Sir R.O. Winstedt",
+    "sumber_pautan": "https://ota.bodleian.ox.ac.uk/repository/xmlui/handle/20.500.12024/0376"
+  }
   - `/api/jumlah` - Get total count
+  - Sample Output: [{"count(*)":57385}]
   - `/api/cariGunaKataTepat?kata={keyword}` - Exact word search
+  - Sample Output: {
+    "pantun_fts_id": 26,
+    "pantun_bayang1": "Tetak teja dalam dusun,",
+    "pantun_bayang2": "Tumbang ke ladang padi binasa;",
+    "pantun_maksud1": "Hari senja ayam naik serun,",
+    "pantun_maksud2": "Tikus melawar mencari mangsa.",
+    "pantun_jenis": 4,
+    "sumber_id": 1,
+    "sumber_tajuk": "Pantun Melayu",
+    "sumber_pengkarya": "Richard J. Wilkinson dan Sir R.O. Winstedt",
+    "sumber_pautan": "https://ota.bodleian.ox.ac.uk/repository/xmlui/handle/20.500.12024/0376"
+  }
 - **Data Format**: JSON responses
 - **Rate Limiting**: Respectful usage as requested by API owner
 
