@@ -95,9 +95,9 @@ The Pantunis Mobile App is a React Native application built with Expo that bring
 - **Home Feed**: Featured and recently added pantun
 - **Categories**: Browse by themes, topics, or collections
 - **Random Pantun**: Discover new content serendipitously
-- **Trending**: Popular pantun based on user interactions
+- **Most Popular**: Pantun with highest user engagement
 
-### 4.3 Search Functionality
+### 4.3 Search Functionality (Search)
 - **Keyword Search**: Search pantun by specific words or phrases
 - **Advanced Filters**: Filter by themes, length, or metadata
 - **Search History**: Save and revisit previous searches
@@ -106,7 +106,7 @@ The Pantunis Mobile App is a React Native application built with Expo that bring
 ### 4.4 Favorites & Collections
 - **Bookmark System**: Save favorite pantun to personal collection
 - **Custom Lists**: Create themed collections
-- **Offline Access**: Download favorites for offline reading
+- **Offline Pantun**: Download favorites for offline reading
 - **Export Options**: Share collections or export as text
 
 ### 4.5 Social Sharing
