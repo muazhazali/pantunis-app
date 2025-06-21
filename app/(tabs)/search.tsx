@@ -2,8 +2,8 @@ import { Header } from '@/components/Header';
 import { PantunCard } from '@/components/PantunCard';
 import { ThemedText } from '@/components/ThemedText';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, ListRenderItemInfo, StyleSheet, TextInput, View } from 'react-native';
 
 interface ApiPantun {
   pantun_bayang1: string;
@@ -27,11 +27,14 @@ export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ApiPantun[]>([]);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const LIMIT = 20;
 
-  const fetchResults = React.useCallback(
-    debounce(async (text: string) => {
+  const fetchResults = useCallback(
+    debounce(async (text: string, reset: boolean = false) => {
       if (!text) {
         setResults([]);
+        setPage(0);
         return;
       }
       try {
@@ -39,23 +42,42 @@ export default function SearchScreen() {
         const res = await fetch(
           `https://pantunis-api-vercel.vercel.app/api/cariGunaKata?kata=${encodeURIComponent(
             text
-          )}`
+          )}&offset=${reset ? 0 : page * LIMIT}&limit=${LIMIT}`
         );
         const data = await res.json();
         // API returns an object. Wrap in array for uniformity.
-        setResults(Array.isArray(data) ? data : [data]);
+        const newItems = Array.isArray(data) ? data : [data];
+        setResults((prev) => (reset ? newItems : [...prev, ...newItems]));
+        if (newItems.length > 0) {
+          setPage((prev) => prev + 1);
+        }
       } catch (err) {
         console.error(err);
       } finally {
         setLoading(false);
       }
     }, 500),
-    []
+    [page]
   );
 
   useEffect(() => {
-    fetchResults(query);
+    fetchResults(query, true);
   }, [query]);
+
+  const loadMore = () => {
+    if (!loading && query) {
+      fetchResults(query);
+    }
+  };
+
+  const renderItem = ({ item }: ListRenderItemInfo<ApiPantun>) => (
+    <PantunCard
+      id={item.pantun_id}
+      tag={"Pantun"}
+      lines={[item.pantun_bayang1, item.pantun_bayang2, item.pantun_maksud1, item.pantun_maksud2]}
+      source={item.sumber_tajuk}
+    />
+  );
 
   return (
     <View style={styles.container}>
@@ -67,34 +89,32 @@ export default function SearchScreen() {
             style={styles.searchInput}
             placeholder="Cari kata atau frasa..."
             value={query}
-            onChangeText={setQuery}
+            onChangeText={(t) => {
+              setPage(0);
+              setQuery(t);
+            }}
           />
         </View>
         <IconSymbol name="slider.horizontal.3" color="#00936a" size={24} />
       </View>
-      <ScrollView contentContainerStyle={styles.resultsContainer}>
-        {loading && <ActivityIndicator color="#00936a" />}
-        {!loading && results.length === 0 && query.length === 0 && (
-          <View style={styles.emptyState}>
-            <IconSymbol name="magnifyingglass" color="#C0C0C0" size={48} />
-            <ThemedText lightColor="#C0C0C0" darkColor="#C0C0C0" style={{ marginTop: 8 }}>
-              Masukkan kata kunci untuk mencari pantun
-            </ThemedText>
-          </View>
-        )}
-        {!loading && results.length === 0 && query.length > 0 && (
-          <ThemedText>Tidak jumpa hasil.</ThemedText>
-        )}
-        {results.map((p) => (
-          <PantunCard
-            key={p.pantun_id}
-            id={p.pantun_id}
-            tag={"Pantun"}
-            lines={[p.pantun_bayang1, p.pantun_bayang2, p.pantun_maksud1, p.pantun_maksud2]}
-            source={p.sumber_tajuk}
-          />
-        ))}
-      </ScrollView>
+      {results.length === 0 && !loading ? (
+        <View style={styles.emptyState}>
+          <IconSymbol name="magnifyingglass" color="#C0C0C0" size={48} />
+          <ThemedText lightColor="#C0C0C0" darkColor="#C0C0C0" style={{ marginTop: 8 }}>
+            {query ? 'No results found' : 'Enter keywords to search pantun'}
+          </ThemedText>
+        </View>
+      ) : (
+        <FlatList
+          data={results}
+          keyExtractor={(item) => String(item.pantun_id)}
+          renderItem={renderItem}
+          contentContainerStyle={styles.resultsContainer}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={loading ? <ActivityIndicator color="#00936a" /> : null}
+        />
+      )}
     </View>
   );
 }
