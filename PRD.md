@@ -83,6 +83,62 @@ The Pantunis Mobile App is a React Native application built with Expo that bring
 - **Storage**: User profile images, cached pantun data
 - **Functions**: Search optimization, data synchronization
 
+### 3.4 Appwrite Database Schema
+
+#### 3.4.1 Collections
+
+1. **users** (`collectionId: users`)
+   | Field | Type | Description |
+   |-------|------|-------------|
+   | `userId` | string | Appwrite Auth user Id (owner). Indexed & unique. |
+   | `name` | string | Display name chosen by the user. |
+   | `email` | string | Primary e-mail (redundant copy from Auth for ease of querying). |
+   | `avatarUrl` | string | Public URL to avatar image in Appwrite Storage. Optional. |
+   | `favouritesCount` | integer | Denormalised counter, updated by Cloud Function. Default: `0`. |
+   | `createdAt` | datetime | Auto-generated. |
+   | `updatedAt` | datetime | Auto-generated. |
+
+   **Permissions**: `user:<userId>` read & update; `role:server` read & write.
+
+2. **favourites** (`collectionId: favourites`)
+   | Field | Type | Description |
+   |-------|------|-------------|
+   | `userId` | string | Owner Id (maps to Auth user). Indexed. |
+   | `pantunId` | integer | Id returned by Pantunis API. |
+   | `createdAt` | datetime | Time favourited. |
+
+   **Composite Index**: (`userId`, `pantunId`) – unique to prevent duplicates.
+
+   **Permissions**: `user:<userId>` read & write; `role:server` read & write.
+
+3. **reading_history** (`collectionId: history`)
+   | Field | Type | Description |
+   |-------|------|-------------|
+   | `userId` | string | Owner Id. |
+   | `pantunId` | integer | Id of pantun read. |
+   | `readAt` | datetime | Time opened. |
+
+4. **settings** (`collectionId: settings`) – optional user preferences (theme, language, etc.)
+
+#### 3.4.2 Indexes & Security Rules
+- **Indexes**: Create single-field indexes on `userId`, `pantunId`, and a composite index on (`userId`, `pantunId`) in **favourites**.
+- **Document-Level Security**: Leverage Appwrite permissions so each document is owned by and only visible to `user:<userId>`.
+- **Function Role**: Grant `role:server` to Cloud Functions that need broader read access for aggregation.
+
+#### 3.4.3 Cloud Functions
+1. **updateFavouritesCount** – Trigger: document `create` & `delete` on **favourites**. Updates the related `favouritesCount` in **users**.
+2. **getUserProfileStats** – HTTP-exposed function that returns: `favouritesCount`, `historyCount`, `lastLogin`, etc., used by Profile screen.
+
+---
+
+### 3.5 Profile Statistics (Replacing Hard-Coded Values)
+The Profile tab must display dynamic numbers sourced from `getUserProfileStats` instead of hard-coded placeholders. On component mount:
+1. Fetch `getUserProfileStats` using the authenticated session.
+2. Populate UI fields: *Total Favourites*, *Pantun Read*, *Member Since*, etc.
+3. Subscribe to real-time updates on **favourites** (`client.subscribe`) to optimistically update counts after a user favourites/un-favourites a pantun.
+
+> **Migration Note**: Existing mock values should be removed once this integration lands.
+
 ## 4. Core Features & Functionality
 
 ### 4.1 Authentication & User Management
