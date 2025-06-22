@@ -1,5 +1,5 @@
 import { account } from '@/services/appwrite';
-import { ID, Models } from 'appwrite';
+import { Account, ID, Models } from 'appwrite';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface AuthContextType {
@@ -10,6 +10,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   sendEmailVerification: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  account: Account;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -70,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, sendEmailVerification, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, sendEmailVerification, refreshUser, account }}>
       {children}
     </AuthContext.Provider>
   );

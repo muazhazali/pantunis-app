@@ -1,9 +1,11 @@
 import { useAuth } from '@/hooks/useAuth';
+import { OAuthProvider } from 'appwrite';
+import * as WebBrowser from 'expo-web-browser';
 import React, { useState } from 'react';
-import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function LoginForm() {
-  const { login, register, loading } = useAuth();
+  const { login, register, loading, account, refreshUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -20,6 +22,25 @@ export default function LoginForm() {
       }
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong');
+    }
+  };
+
+  const googleLogin = async () => {
+    try {
+      const success = 'pantunisapp://auth';
+      const failure = 'pantunisapp://auth';
+
+      const authUrl = account.createOAuth2Session(
+        OAuthProvider.Google,
+        success,
+        failure,
+        ['email', 'profile']
+      ) as unknown as string;
+
+      await WebBrowser.openAuthSessionAsync(authUrl, success);
+      await refreshUser();
+    } catch (err: any) {
+      Alert.alert('Google login failed', err.message);
     }
   };
 
@@ -64,6 +85,8 @@ export default function LoginForm() {
         title={isRegistering ? 'Saya sudah ada akaun' : 'Daftar akaun baharu'}
         onPress={() => setIsRegistering((prev) => !prev)}
       />
+
+      <Button title="Sign in with Google" onPress={googleLogin} />
     </View>
   );
 }
