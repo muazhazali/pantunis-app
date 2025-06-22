@@ -8,6 +8,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  sendEmailVerification: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,8 +58,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const sendEmailVerification = async () => {
+    // Use custom scheme or fallback.
+    const redirect = process.env.APP_EMAIL_VERIFY_REDIRECT ?? 'https://localhost';
+    await account.createVerification(redirect);
+  };
+
+  const refreshUser = async () => {
+    const current = await account.get();
+    setUser(current);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, sendEmailVerification, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

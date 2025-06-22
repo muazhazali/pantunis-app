@@ -1,42 +1,43 @@
 import { Header } from '@/components/Header';
+import LoginForm from '@/components/LoginForm';
 import { PantunCard } from '@/components/PantunCard';
 import { ThemedText } from '@/components/ThemedText';
+import { useAuth } from '@/hooks/useAuth';
+import { useFavourites } from '@/hooks/useFavourites';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-
-const FAVORITES = [
-  {
-    id: 1,
-    tag: 'Kasih Sayang',
-    lines: [
-      'Bunga melati di taman sari',
-      'Harum semerbak di pagi hari',
-      'Jika hati penuh dengan kasih',
-      'Hidup akan selalu berseri',
-    ],
-  },
-  {
-    id: 3,
-    tag: 'Budi Pekerti',
-    lines: [
-      'Ikan keli di dalam kolam',
-      'Berenang-renang cari makanan',
-      'Budi yang baik jangan dilupakan',
-      'Kerana ia warisan turun temurun',
-    ],
-  },
-];
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function FavoritesScreen() {
+  const { user, loading: authLoading } = useAuth();
+  const { documents, loading } = useFavourites();
+
+  if (authLoading) {
+    return <ActivityIndicator style={{ flex: 1 }} />;
+  }
+
+  if (!user) {
+    return <LoginForm />;
+  }
+
   return (
     <View style={styles.container}>
       <Header title="Pantun Kegemaran" />
-      <ScrollView contentContainerStyle={styles.content}>
-        <ThemedText style={{ marginBottom: 8 }}>{FAVORITES.length} pantun disimpan</ThemedText>
-        {FAVORITES.map((p) => (
-          <PantunCard key={p.id} id={p.id} tag={p.tag} lines={p.lines} isFavorite={true} />
-        ))}
-      </ScrollView>
+      {loading ? (
+        <ActivityIndicator style={{ flex: 1 }} />
+      ) : (
+        <ScrollView contentContainerStyle={styles.content}>
+          <ThemedText style={{ marginBottom: 8 }}>{documents.length} pantun disimpan</ThemedText>
+          {documents.map((doc) => (
+            <PantunCard
+              key={doc.$id}
+              id={doc.pantunId}
+              tag={doc.tag ?? ''}
+              lines={doc.lines ?? []}
+              isFavorite={true}
+            />
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }

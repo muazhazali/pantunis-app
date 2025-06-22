@@ -3,10 +3,25 @@ import LoginForm from '@/components/LoginForm';
 import { ThemedText } from '@/components/ThemedText';
 import { useAuth } from '@/hooks/useAuth';
 import React from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Button, StyleSheet, View } from 'react-native';
 
 export default function ProfileScreen() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout, sendEmailVerification } = useAuth();
+
+  const handleLogout = () => {
+    logout().catch((err) => Alert.alert('Error', err.message));
+  };
+
+  const handleVerifyEmail = async () => {
+    try {
+      await sendEmailVerification();
+      Alert.alert('Pengesahan e-mel', 'Sila semak peti masuk anda untuk pautan pengesahan.');
+    } catch (err: any) {
+      Alert.alert('Ralat', err.message ?? 'Tidak dapat menghantar e-mel pengesahan');
+    }
+  };
+
+  const needsVerification = user && (user as any).emailVerification === false;
 
   if (loading) {
     return <ActivityIndicator style={{ flex: 1 }} />;
@@ -33,7 +48,10 @@ export default function ProfileScreen() {
           <ThemedText>Dikongsi</ThemedText>
         </View>
       </View>
-      {/* Additional profile actions can be added here */}
+      {needsVerification ? (
+        <Button title="Sahkan E-mel" onPress={handleVerifyEmail} />
+      ) : null}
+      <Button title="Log Keluar" onPress={handleLogout} color="#d32f2f" />
     </View>
   );
 }
