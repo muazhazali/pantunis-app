@@ -26,6 +26,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .then(setUser)
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
+
+    // Web OAuth2 callback: ?userId=xxx&secret=yyy
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const userId = params.get('userId');
+      const secret = params.get('secret');
+      if (userId && secret) {
+        setLoading(true);
+        account
+          .createSession(userId, secret)
+          .then(() => account.get().then(setUser))
+          .finally(() => {
+            // Clean URL
+            params.delete('userId');
+            params.delete('secret');
+            const newPath = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            window.history.replaceState({}, '', newPath);
+            setLoading(false);
+          });
+      }
+    }
   }, []);
 
   const login = async (email: string, password: string) => {

@@ -2,7 +2,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { OAuthProvider } from 'appwrite';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Button, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function LoginForm() {
   const { login, register, loading, account, refreshUser } = useAuth();
@@ -27,9 +27,22 @@ export default function LoginForm() {
 
   const googleLogin = async () => {
     try {
-      const success = 'pantunisapp://auth';
-      const failure = 'pantunisapp://auth';
+      const success = Platform.OS === 'web' ? window.location.origin : 'pantunisapp://auth';
+      const failure = success;
 
+      if (Platform.OS === 'web') {
+        // SDK handles redirection internally for web
+        await account.createOAuth2Session(
+          OAuthProvider.Google,
+          success,
+          failure,
+          ['email', 'profile']
+        );
+        // After redirect back, session is set and AuthProvider reloads user.
+        return;
+      }
+
+      // Native: we need to open the returned URL manually
       const authUrl = account.createOAuth2Session(
         OAuthProvider.Google,
         success,
